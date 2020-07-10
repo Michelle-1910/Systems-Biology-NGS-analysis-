@@ -44,3 +44,6 @@ mv temp.fasta present_virulence.fasta
 cat VF_DBEC.fasta present_virulence.fasta > final_virulence.fasta
 
 #all new files were moved to the new folder virulence under results
+
+end=$SECONDS
+echo "duration: $((end-start)) seconds."
