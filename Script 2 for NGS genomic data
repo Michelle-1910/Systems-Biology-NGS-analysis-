@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 start=$SECONDS
 echo $"Written by" 'Michelle Namuyaba ' | sed $'s/Michelle Namuyaba /\e[32m&\e[0m/';
 echo $"Part two of the coursework!"
