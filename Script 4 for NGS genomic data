@@ -1,0 +1,46 @@
+#!/bin/bash
+
+start=$SECONDS
+
+echo $"Written by"  'Michelle Namuyaba ' | sed $'s/Michelle Namuyaba /\e[32m&\e[0m/';
+
+echo $"Part one of the coursework!"
+
+#load modules
+#module load freebayes
+#module load vcflib
+
+
+#getting a consensus sequence with freebayes
+freebayes -f /d/projects/u/nm001/SB_practical1/course_materials/genomes/AFPN02.1/AFPN02.1_merge.fasta -p 1 /d/projects/u/nm001/SB_practical1/course_materials/alignment/Long.bam > Long.vcffile
+
+#converting to a fasta file
+vcf2fasta -f /d/projects/u/nm001/SB_practical1/course_materials/genomes/AFPN02.1/AFPN02.1_merge.fasta -P 1 Long.vcffile -p AFPN02.1_conssensus
+
+# Remame consensus file
+mv AFPN02.1_consensusunknown_AFPN02.1_merge:0.fa AFPN02.1_merge_consen sus.fa
+
+#I then got a file containing bacterial virulent factors from http://www.mgc.ac.cn/VFs/Down/VFDB_setB_nt.fas.gz
+
+#I then extracted the E.coli virulence factors into a separate file
+#option to reduce the items in the virulence factor file from the database
+cat VFDB_setB_nt.fas | grep -A1 -E 'Escherichia coli' | cut -d ' ' -f2 | sed 's/(/>/ g' | sed 's/)// g' | grep -A1 -E 'stx2|pic|sigA|sepA|setI|setA|setB|iha|aggR|aggA|aggB|aggC|aggD|aap|aatP|aatA|aatB|aatC|aatD' | sed '/^--$/d' > VF_DBEC.fasta
+
+#finding the virulence factors in the predicted annotation
+#creating a bed file with the selected genes
+cat annotation.gff | grep -E 'pic|stx2|sigA|sepA|setI|setA|setB|iha|aggR|aggA|aggB|aggC|aggD|aap|aatP|aatA|aatB|aatC|aatD|virulence' | awk 'BEGIN {FS="\t"}  split($9, captured, /[(=);]/) >=10  {print "sequence1" "\t" $4 "\t" $5 "\t" captured[10] "\t" captured[4] "\t" $7}' > present_virulence_ass.bed
+
+
+#getting a fasta file from the bed file
+bedtools getfasta -name -s -fi /d/projects/u/nm001/SB_practical1/course_materials/ngscw/annotation/genome.fna -bed present_virulence_ass.bed -fo present_virulence_ass.fasta
+
+#modifying the fasta file to get rid of '(-)' and '(+)' succeding the gene names
+cat present_virulence_ass.fasta | sed 's/(.*// g' > temp.fasta
+
+#renaming the file
+mv temp.fasta present_virulence.fasta
+
+#merging both files to create one file with merged reads
+cat VF_DBEC.fasta present_virulence.fasta > final_virulence.fasta
+
+#all new files were moved to the new folder virulence under results
