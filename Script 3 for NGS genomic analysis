@@ -1,0 +1,11 @@
+#to get the unmapped reads from the bam file
+samtools view -f 4 BQnew_lm.sam > unmapped.sam
+
+#to get mapped reads from bam file
+samtools view -F 4 BQnew_lm.sam > mapped.sam
+
+#to get uniquley mapped reads
+samtools view BQnew_lm.sam | grep -E '@|NM:' | grep -v 'XS:' > uniquemapped.sam
+
+#to get multimapped reads
+samtools view BQnew_lm.sam | grep -E '@|NM:' | grep 'XS:’ > multimapped.sam
