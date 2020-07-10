@@ -1,0 +1,48 @@
+#!/bin/bash
+start=$SECONDS
+echo $"Written by" 'Michelle Namuyaba ' | sed $'s/Michelle Namuyaba /\e[32m&\e[0m/';
+echo $"Part one of the coursework!"
+
+##First I carried out fastqc to see what details the negative fastq reads entail.
+#module load fastqc
+fastqc trimmed_Negative.fq
+
+##Then I run cutadapt to trim the N nucleotides at both ends
+/s/software/anaconda/python3/bin/cutadapt --trim-n trimmed_Negative.fq -o Negativenewl.fq
+
+##I then run fastqc to check on read quality after trimming
+fastqc Negativenewl.fq
+
+##The next step is aligning to the reference genome
+##Create the Bowtie2 genome index.
+/s/software/anaconda/python3/bin/bowtie2-build
+/d/projects/u/nm001/SB_practical1/course_materials/genomes/AFPN02.1/AFPN02.1_merge.fasta A
+FPN02.1_merge
+
+##Alignment of the reads with bowtie2
+##option 1 using a local alignment parameter
+#/s/software/anaconda/python3/bin/bowtie2 --local -x
+/d/projects/u/nm001/SB_practical1/course_materials/genomes/AFPN02.1/AFPN02.1_merge -q
+/d/projects/u/nm001/SB_practical1/course_materials/cw/Negativenewl.fq -S Negativenewl.sam >&
+Negativenewl_bowtie_stats.txt
+
+##option 2 using an end to end alignment parameter
+#/s/software/anaconda/python3/bin/bowtie2 –end-to-end -x
+/d/projects/u/nm001/SB_practical1/course_materials/genomes/AFPN02.1/AFPN02.1_merge -q
+/d/projects/u/nm001/SB_practical1/course_materials/cw/Negativenewe.fq -S Negativenewe.sam
+>& Negativenewe_bowtie_stats.txt
+
+##loading the module
+#module load samtools
+##Running samtools stats and flagstats
+##The file names were adjusted accordingly to the two above parameters
+samtools sort Negativenewl.sam > Negativenewl.bam
+samtools index Negativenewl.bam
+samtools stats Negativenewl.bam > Negativenewl_stats.txt
+samtools flagstat Negativenewl.bam > Negativenewl_flagstat.txt
+
+##Run MultiQC to capture all the statistics.
+multiqc . -f
+
+end=$SECONDS
+echo "duration: $((end-start)) seconds."
