@@ -1,0 +1,54 @@
+!/bin/bash
+start=$SECONDS
+echo $"Written by" 'Michelle Namuyaba ' | sed $'s/Michelle Namuyaba /\e[32m&\e[0m/';
+echo $"Part two of the coursework!"
+
+##First I carried out fastqc to see what details the negative fastq reads entail.
+#module load fastqc
+fastqc trimmed_BQ.fq
+
+##Then I run cutadapt to trim the N nucleotides at both ends
+/s/software/anaconda/python3/bin/cutadapt --trim-n trimmed_BQ.fq -o BQnew_lm.fq
+
+##I then run fastqc to check on read quality after trimming
+fastqc BQnew_lm.fq
+
+##The next step is aligning to the reference genome
+##Create the Bowtie2 genome index.
+/s/software/anaconda/python3/bin/bowtie2-build
+/d/projects/u/nm001/SB_practical1/course_materials/genomes/AFPN02.1/AFPN02.1_merge.fasta A
+FPN02.1_merge
+
+##Alignment of the reads with bowtie2
+#using the end to end alignment parameter
+/s/software/anaconda/python3/bin/bowtie2 –end-to-end -x
+/d/projects/u/nm001/SB_practical1/course_materials/genomes/AFPN02.1/AFPN02.1_merge -q
+/d/projects/u/nm001/SB_practical1/course_materials/cw2/BQnew_e.fq -S BQnew_e.sam >&
+BQnewe_bowtie_stats.txt
+
+#using the local alignment parameter
+/s/software/anaconda/python3/bin/bowtie2 --local -x
+/d/projects/u/nm001/SB_practical1/course_materials/genomes/AFPN02.1/AFPN02.1_merge -q
+/d/projects/u/nm001/SB_practical1/course_materials/cw2/BQnew_l.fq -S BQnew_l.sam >&
+BQnewl_bowtie_stats.txt
+
+#using the local alignment parameter with gap open and match bonus options
+/s/software/anaconda/python3/bin/bowtie2 --local --ma 2 --rdg 6,4 --rfg 6,4 -x
+/d/projects/u/nm001/SB_practical1/course_materials/genomes/AFPN02.1/AFPN02.1_merge -q
+/d/projects/u/nm001/SB_practical1/course_materials/cw2/BQnew_lm.fq -S BQnew_lm.sam >&
+BQnewlm_bowtie_stats.txt
+
+##loading the module
+#module load samtools
+##Running samtools stats and flagstats
+## The file names were adjusted accordingly for all 3 parameters
+samtools sort BQnew_lm.sam > BQnew_lm.bam
+samtools index BQnew_lm.bam
+samtools stats BQnew_lm.bam > BQnewlm_stats.txt
+samtools flagstat BQnew_lm.bam > BQnewlm_flagstat.txt
+
+##Run MultiQC to capture all the statistics.
+multiqc . -f
+
+end=$SECONDS
+echo "duration: $((end-start)) seconds."
