@@ -15,3 +15,6 @@ samtools view BQnew_lm.sam | grep -E '@|NM:' | grep -v 'XS:' > uniquemapped.sam
 
 #to get multimapped reads
 samtools view BQnew_lm.sam | grep -E '@|NM:' | grep 'XS:’ > multimapped.sam
+
+end=$SECONDS
+echo "duration: $((end-start)) seconds."
